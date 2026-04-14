@@ -1,14 +1,12 @@
 #include <iostream>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
+#include <set>
 #include <vector>
 
-typedef std::string Node;
-typedef std::pair<Node, Node> Edge;
+#include "cfg.h"
+#include "dominators.h"
 
 int main() {
+    // Шаг 1. Описание дуг CFG.
     std::vector<Edge> edges;
     edges.push_back(Edge("start", "1"));
     edges.push_back(Edge("1", "2"));
@@ -20,26 +18,16 @@ int main() {
     edges.push_back(Edge("4", "5"));
     edges.push_back(Edge("5", "stop"));
 
-    std::unordered_map<Node, std::vector<Node> > succ;
-    std::unordered_map<Node, std::vector<Node> > pred;
-    std::unordered_set<Node> nodes;
-
-    for (std::size_t i = 0; i < edges.size(); ++i) {
-        const Node& u = edges[i].first;
-        const Node& v = edges[i].second;
-        succ[u].push_back(v);
-        pred[v].push_back(u);
-        nodes.insert(u);
-        nodes.insert(v);
-    }
+    // Шаг 2. Построение структур CFG.
+    CFG cfg = BuildCFG(edges);
 
     std::cout << "Nodes:\n";
-    for (std::unordered_set<Node>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
-        std::cout << "  " << *it << '\n';
+    for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
+        std::cout << "  " << cfg.node_list[i] << '\n';
     }
 
     std::cout << "\nSucc:\n";
-    for (std::unordered_map<Node, std::vector<Node> >::const_iterator it = succ.begin(); it != succ.end(); ++it) {
+    for (std::unordered_map<Node, std::vector<Node> >::const_iterator it = cfg.succ.begin(); it != cfg.succ.end(); ++it) {
         const Node& u = it->first;
         const std::vector<Node>& vs = it->second;
         std::cout << "  " << u << " -> ";
@@ -50,7 +38,7 @@ int main() {
     }
 
     std::cout << "\nPred:\n";
-    for (std::unordered_map<Node, std::vector<Node> >::const_iterator it = pred.begin(); it != pred.end(); ++it) {
+    for (std::unordered_map<Node, std::vector<Node> >::const_iterator it = cfg.pred.begin(); it != cfg.pred.end(); ++it) {
         const Node& v = it->first;
         const std::vector<Node>& us = it->second;
         std::cout << "  " << v << " <- ";
@@ -58,6 +46,26 @@ int main() {
             std::cout << us[i] << ' ';
         }
         std::cout << '\n';
+    }
+
+    // Шаг 3. Итеративное вычисление DOM(n).
+    DomMap dom = ComputeDominators(cfg, "start");
+
+    std::cout << "\nDOM sets:\n";
+    for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
+        const Node& n = cfg.node_list[i];
+        std::set<Node> ordered_dom(dom[n].begin(), dom[n].end());
+        std::cout << "  DOM(" << n << ") = {";
+
+        bool first = true;
+        for (std::set<Node>::const_iterator it = ordered_dom.begin(); it != ordered_dom.end(); ++it) {
+            if (!first) {
+                std::cout << ", ";
+            }
+            std::cout << *it;
+            first = false;
+        }
+        std::cout << "}\n";
     }
 
     return 0;

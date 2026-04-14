@@ -19,4 +19,7 @@ DomTree BuildDominatorTree(const CFG& cfg, const IdomMap& idom, const Node& star
 //вычисляет уровни узлов в дереве доминаторов
 std::unordered_map<Node, int> ComputeDomLevels(const CFG& cfg, const DomTree& tree, const Node& start);
 
+//вычисляет j-edge по определению x !sdom y
+std::vector<Edge> ComputeJEdges(const CFG& cfg, const DomMap& dom);
+
 #endif  // DOMINATORS_H

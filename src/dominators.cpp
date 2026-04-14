@@ -177,3 +177,31 @@ std::unordered_map<Node, int> ComputeDomLevels(const CFG& cfg, const DomTree& tr
 
     return level;
 }
+
+std::vector<Edge> ComputeJEdges(const CFG& cfg, const DomMap& dom) {
+    std::vector<Edge> j_edges;
+
+    //перебор всех дуг исходного cfg
+    for (std::unordered_map<Node, std::vector<Node> >::const_iterator it = cfg.succ.begin(); it != cfg.succ.end(); ++it) {
+        const Node& x = it->first;
+        const std::vector<Node>& out = it->second;
+
+        for (std::size_t i = 0; i < out.size(); ++i) {
+            const Node& y = out[i];
+
+            //проверка x !sdom y
+            bool x_strictly_dominates_y = false;
+            if (x != y && dom.at(y).find(x) != dom.at(y).end()) {
+                x_strictly_dominates_y = true;
+            }
+
+            if (!x_strictly_dominates_y) {
+                j_edges.push_back(Edge(x, y));
+            }
+        }
+    }
+
+    //сортировка нужна для стабильного вывода
+    std::sort(j_edges.begin(), j_edges.end());
+    return j_edges;
+}

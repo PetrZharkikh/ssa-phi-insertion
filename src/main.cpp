@@ -72,6 +72,7 @@ int main() {
     IdomMap idom = ComputeImmediateDominators(cfg, dom, "start");
     DomTree dom_tree = BuildDominatorTree(cfg, idom, "start");
     std::unordered_map<Node, int> level = ComputeDomLevels(cfg, dom_tree, "start");
+    std::vector<Edge> j_edges = ComputeJEdges(cfg, dom);
 
     std::cout << "\nIDOM:\n";
     for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
@@ -99,6 +100,11 @@ int main() {
     for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
         const Node& n = cfg.node_list[i];
         std::cout << "  level(" << n << ") = " << level[n] << '\n';
+    }
+
+    std::cout << "\nJ-edges:\n";
+    for (std::size_t i = 0; i < j_edges.size(); ++i) {
+        std::cout << "  {" << j_edges[i].first << ", " << j_edges[i].second << "}\n";
     }
 
     return 0;

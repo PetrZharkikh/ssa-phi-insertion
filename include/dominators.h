@@ -22,4 +22,18 @@ std::unordered_map<Node, int> ComputeDomLevels(const CFG& cfg, const DomTree& tr
 //вычисляет j-edge по определению x !sdom y
 std::vector<Edge> ComputeJEdges(const CFG& cfg, const DomMap& dom);
 
+//вычисляет df(x) через subtree(x), j-edge и level
+std::vector<Node> ComputeDominanceFrontierForNode(
+    const Node& x,
+    const DomTree& tree,
+    const std::unordered_map<Node, int>& level,
+    const std::vector<Edge>& j_edges);
+
+//вычисляет idf(defs) без дополнительных оптимизаций
+std::vector<Node> ComputeIteratedDominanceFrontier(
+    const std::vector<Node>& defs,
+    const DomTree& tree,
+    const std::unordered_map<Node, int>& level,
+    const std::vector<Edge>& j_edges);
+
 #endif  // DOMINATORS_H

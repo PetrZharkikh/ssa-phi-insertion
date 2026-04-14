@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(phi_placement
     src/cfg.cpp
     src/dominators.cpp
+    src/io.cpp
     src/main.cpp
 )
 

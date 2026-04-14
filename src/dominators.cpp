@@ -205,3 +205,102 @@ std::vector<Edge> ComputeJEdges(const CFG& cfg, const DomMap& dom) {
     std::sort(j_edges.begin(), j_edges.end());
     return j_edges;
 }
+
+static void CollectSubtreeNodes(
+    const Node& root,
+    const DomTree& tree,
+    std::unordered_set<Node>& subtree) {
+    if (subtree.find(root) != subtree.end()) {
+        return;
+    }
+
+    subtree.insert(root);
+    DomTree::const_iterator it = tree.find(root);
+    if (it == tree.end()) {
+        return;
+    }
+
+    for (std::size_t i = 0; i < it->second.size(); ++i) {
+        CollectSubtreeNodes(it->second[i], tree, subtree);
+    }
+}
+
+std::vector<Node> ComputeDominanceFrontierForNode(
+    const Node& x,
+    const DomTree& tree,
+    const std::unordered_map<Node, int>& level,
+    const std::vector<Edge>& j_edges) {
+    std::unordered_set<Node> subtree;
+    std::unordered_set<Node> df_set;
+
+    //сбор узлов subtree(x)
+    CollectSubtreeNodes(x, tree, subtree);
+
+    //отбор y по j-edge z->y, где z в subtree(x) и level(y) <= level(x)
+    for (std::size_t i = 0; i < j_edges.size(); ++i) {
+        const Node& z = j_edges[i].first;
+        const Node& y = j_edges[i].second;
+
+        if (subtree.find(z) == subtree.end()) {
+            continue;
+        }
+
+        std::unordered_map<Node, int>::const_iterator y_level_it = level.find(y);
+        std::unordered_map<Node, int>::const_iterator x_level_it = level.find(x);
+        if (y_level_it == level.end() || x_level_it == level.end()) {
+            continue;
+        }
+
+        if (y_level_it->second <= x_level_it->second) {
+            df_set.insert(y);
+        }
+    }
+
+    //преобразование в отсортированный вектор
+    std::vector<Node> result(df_set.begin(), df_set.end());
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+std::vector<Node> ComputeIteratedDominanceFrontier(
+    const std::vector<Node>& defs,
+    const DomTree& tree,
+    const std::unordered_map<Node, int>& level,
+    const std::vector<Edge>& j_edges) {
+    std::unordered_set<Node> defs_set(defs.begin(), defs.end());
+    std::unordered_set<Node> idf_set;
+    std::unordered_set<Node> in_worklist;
+    std::vector<Node> worklist;
+
+    //инициализация рабочего списка defs
+    for (std::size_t i = 0; i < defs.size(); ++i) {
+        if (in_worklist.insert(defs[i]).second) {
+            worklist.push_back(defs[i]);
+        }
+    }
+
+    //итеративное вычисление idf
+    std::size_t head = 0;
+    while (head < worklist.size()) {
+        const Node x = worklist[head];
+        ++head;
+
+        std::vector<Node> df = ComputeDominanceFrontierForNode(x, tree, level, j_edges);
+        for (std::size_t i = 0; i < df.size(); ++i) {
+            const Node& y = df[i];
+
+            if (idf_set.insert(y).second) {
+                if (defs_set.find(y) == defs_set.end()) {
+                    if (in_worklist.insert(y).second) {
+                        worklist.push_back(y);
+                    }
+                }
+            }
+        }
+    }
+
+    //сортировка результата для стабильного вывода
+    std::vector<Node> result(idf_set.begin(), idf_set.end());
+    std::sort(result.begin(), result.end());
+    return result;
+}

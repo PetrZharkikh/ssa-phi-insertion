@@ -6,7 +6,7 @@
 #include "dominators.h"
 
 int main() {
-    // Шаг 1. Описание дуг CFG.
+    //описание дуг CFG
     std::vector<Edge> edges;
     edges.push_back(Edge("start", "1"));
     edges.push_back(Edge("1", "2"));
@@ -18,7 +18,7 @@ int main() {
     edges.push_back(Edge("4", "5"));
     edges.push_back(Edge("5", "stop"));
 
-    // Шаг 2. Построение структур CFG.
+    //построение структур cfg
     CFG cfg = BuildCFG(edges);
 
     std::cout << "Nodes:\n";
@@ -48,7 +48,7 @@ int main() {
         std::cout << '\n';
     }
 
-    // Шаг 3. Итеративное вычисление DOM(n).
+    //итеративное вычисление dom(n)
     DomMap dom = ComputeDominators(cfg, "start");
 
     std::cout << "\nDOM sets:\n";
@@ -66,6 +66,39 @@ int main() {
             first = false;
         }
         std::cout << "}\n";
+    }
+
+    //построение idom и дерева доминаторов
+    IdomMap idom = ComputeImmediateDominators(cfg, dom, "start");
+    DomTree dom_tree = BuildDominatorTree(cfg, idom, "start");
+    std::unordered_map<Node, int> level = ComputeDomLevels(cfg, dom_tree, "start");
+
+    std::cout << "\nIDOM:\n";
+    for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
+        const Node& n = cfg.node_list[i];
+        std::cout << "  idom(" << n << ") = ";
+        if (n == "start") {
+            std::cout << "-";
+        } else {
+            std::cout << idom[n];
+        }
+        std::cout << '\n';
+    }
+
+    std::cout << "\nDominator tree:\n";
+    for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
+        const Node& p = cfg.node_list[i];
+        std::cout << "  " << p << " -> ";
+        for (std::size_t j = 0; j < dom_tree[p].size(); ++j) {
+            std::cout << dom_tree[p][j] << ' ';
+        }
+        std::cout << '\n';
+    }
+
+    std::cout << "\nLevels:\n";
+    for (std::size_t i = 0; i < cfg.node_list.size(); ++i) {
+        const Node& n = cfg.node_list[i];
+        std::cout << "  level(" << n << ") = " << level[n] << '\n';
     }
 
     return 0;

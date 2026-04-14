@@ -5,7 +5,7 @@
 CFG BuildCFG(const std::vector<Edge>& edges) {
     CFG cfg;
 
-    // Построение succ/pred и множества узлов.
+    //построение succ/pred и множества узлов
     for (std::size_t i = 0; i < edges.size(); ++i) {
         const Node& u = edges[i].first;
         const Node& v = edges[i].second;
@@ -15,7 +15,7 @@ CFG BuildCFG(const std::vector<Edge>& edges) {
         cfg.nodes.insert(v);
     }
 
-    // Упорядоченный список нужен для стабильного вывода.
+    //упорядоченный список нужен для стабильного вывода
     cfg.node_list.assign(cfg.nodes.begin(), cfg.nodes.end());
     std::sort(cfg.node_list.begin(), cfg.node_list.end());
 

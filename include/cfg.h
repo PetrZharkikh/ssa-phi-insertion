@@ -17,7 +17,7 @@ struct CFG {
     std::vector<Node> node_list;
 };
 
-// Формирует структуры CFG из списка дуг.
+//формирует структуры cfg из списка дуг
 CFG BuildCFG(const std::vector<Edge>& edges);
 
 #endif  // CFG_H
